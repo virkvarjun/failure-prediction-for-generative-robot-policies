@@ -6,6 +6,9 @@
 # ACT extras included: installs torchvision, einops, etc.
 "lerobot[act]==0.4.4"
 
+# Required for SO101 robot hardware (Feetech servo SDK — not on PyPI, installed via extras)
+# pip install "lerobot[feetech]"
+
 # Deep learning backend (CPU-only wheels by default; switch to CUDA below if needed)
 # For CUDA 12.x: pip install torch --index-url https://download.pytorch.org/whl/cu121
 torch==2.10.0
