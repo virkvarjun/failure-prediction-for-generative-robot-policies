@@ -32,13 +32,14 @@ Reproducible baseline for **"Failure Prediction at Runtime for Generative Robot 
 git clone https://github.com/virkvarjun/failure-prediction-for-generative-robot-policies.git
 cd failure-prediction-for-generative-robot-policies
 
-# Create a virtual environment — must be Python 3.12 (3.13/3.14 breaks draccus)
+# Must be Python 3.12 (3.13/3.14 breaks draccus — lerobot's arg parser)
 # On macOS with Homebrew: /usr/local/bin/python3.12 -m venv .venv
-python3 -m venv .venv
+/usr/local/bin/python3.12 -m venv .venv
 source .venv/bin/activate       # On Windows: .venv\Scripts\activate
 
-# Install all dependencies (lerobot with ACT extras)
+# Core deps + ACT + Feetech hardware SDK
 pip install -r requirements.txt
+pip install "lerobot[feetech]"
 ```
 
 ---
@@ -95,22 +96,26 @@ Expected output: all imports print `✓` and `✅ All checks passed.`
 
 ## 5. Train
 
+Set `DATASET_PATH` to the full path of your local LeRobot dataset (where `lerobot-record` stored your episodes):
+
 ```bash
 source .venv/bin/activate
 
-# Set your dataset (only one of these is needed):
-export DATASET_REPO_ID="a23v/<your-dataset-name>"
-# OR
-export DATASET_PATH="data/<your-dataset-name>"
+# Point to your local recorded dataset
+export DATASET_PATH="$HOME/.cache/huggingface/lerobot/a23v/failure-policy-implementation-training"
 
 # Optional overrides:
-export DEVICE="cpu"                          # cpu | cuda | mps (default: cpu)
-export OUTPUT_DIR="outputs/train/my_run"     # default: outputs/train/<timestamp>
+# export DEVICE="cpu"               # cpu | cuda | mps (default: cpu)
+# export BATCH_SIZE="8"             # mini-batch size
+# export MAX_STEPS="100000"         # total gradient steps
+# export OUTPUT_DIR="outputs/train/my_run"
 
 bash scripts/02_train_act.sh
 ```
 
-Training prints metrics every 200 steps and saves a checkpoint every 20,000 steps.
+The script auto-derives `dataset.repo_id` and `dataset.root` from the path. All lerobot-train flags used are verified — see [`docs/lerobot_train_help.txt`](docs/lerobot_train_help.txt).
+
+Training logs metrics every 200 steps and saves checkpoints every 20,000 steps.
 
 ---
 
