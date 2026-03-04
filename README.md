@@ -32,7 +32,8 @@ Reproducible baseline for **"Failure Prediction at Runtime for Generative Robot 
 git clone https://github.com/virkvarjun/failure-prediction-for-generative-robot-policies.git
 cd failure-prediction-for-generative-robot-policies
 
-# Create a virtual environment (Python 3.10–3.14 supported)
+# Create a virtual environment — must be Python 3.12 (3.13/3.14 breaks draccus)
+# On macOS with Homebrew: /usr/local/bin/python3.12 -m venv .venv
 python3 -m venv .venv
 source .venv/bin/activate       # On Windows: .venv\Scripts\activate
 
@@ -156,7 +157,56 @@ CHECKPOINT_DIR="outputs/train/<run>/checkpoints/last" \
 
 ---
 
-## 8. Environment Variables Reference
+## 8. SO101 Teleoperation
+
+This covers running the SO101 leader/follower arms before recording a dataset.
+
+### Install hardware SDK
+
+```bash
+source .venv/bin/activate
+pip install "lerobot[feetech]"   # Feetech servo SDK — not on PyPI, via extras
+```
+
+### Find your ports
+
+```bash
+ls /dev/tty.usbmodem*   # run with both arms plugged in
+```
+
+For this machine the ports are:
+- **Leader** (teleop): `/dev/tty.usbmodem5AE60583121`
+- **Follower** (robot): `/dev/tty.usbmodem5AE60798501`
+
+Calibration IDs (from `~/.cache/huggingface/lerobot/calibration/`):
+- follower: `so101_follower_1`
+- leader: `so101_leader_1`
+
+### Teleoperate
+
+```bash
+lerobot-teleoperate --robot.type=so101_follower --robot.port=/dev/tty.usbmodem5AE60798501 --robot.id=so101_follower_1 --teleop.type=so101_leader --teleop.port=/dev/tty.usbmodem5AE60583121 --teleop.id=so101_leader_1
+```
+
+If you see a calibration mismatch prompt, just press ENTER to use the existing calibration file.
+
+### If it crashes with `No status packet`
+
+Both arms connect but the follower drops during the first read. Try:
+1. Reseat the follower USB cable firmly
+2. Power cycle the follower arm (unplug/replug 12V, not USB)
+3. Lower the loop rate to reduce bus pressure:
+   ```bash
+   lerobot-teleoperate ... --fps 30
+   ```
+
+### If ports are swapped (wrong arm moves)
+
+Flip the two port values in the command above.
+
+---
+
+## 9. Environment Variables Reference
 
 | Variable | Default | Description |
 |---|---|---|
@@ -183,8 +233,24 @@ pip install -r requirements.txt
 which lerobot-train    # should print .venv/bin/lerobot-train
 ```
 
-### ❌ `TypeError: str | None is not callable` (during `--help`)
-This is a known draccus incompatibility with Python 3.14's argparse. It does **not** affect actual training — the `--help` flag is broken but the training command works fine.
+### ❌ `TypeError: str | None is not callable`
+draccus is incompatible with Python 3.13/3.14. Rebuild your venv with Python 3.12:
+```bash
+rm -rf .venv
+/usr/local/bin/python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install "lerobot[feetech]"
+```
+
+### ❌ `ModuleNotFoundError: No module named 'scservo_sdk'`
+Run: `pip install "lerobot[feetech]"`
+
+### ❌ `Missing motor IDs` on teleoperate
+Ports are swapped. Flip the `--robot.port` and `--teleop.port` values.
+
+### ❌ `No status packet` during teleoperate loop
+Both arms connected but follower dropped mid-read. Reseat USB/power on follower, or add `--fps 30`.
 
 ### ⚠️ MPS / Metal errors on macOS
 Set `DEVICE=cpu` to bypass Metal:
@@ -201,7 +267,7 @@ Ensure you have run `huggingface-cli login` and your dataset is public (or you h
 
 ---
 
-## Hardware Requirements (Milestone 1)
+## Hardware Requirements
 
 | | Minimum | Recommended |
 |---|---|---|
