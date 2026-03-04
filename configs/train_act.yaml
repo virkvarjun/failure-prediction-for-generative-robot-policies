@@ -1,0 +1,65 @@
+# ── train_act.yaml ────────────────────────────────────────────────────────────
+# Documented ACT training configuration for the FIPER project.
+#
+# lerobot-train uses the "draccus" library which maps YAML/JSON configs
+# directly to Python dataclass fields. The equivalent CLI flag for each
+# setting is shown in the comment next to it.
+#
+# This file is NOT loaded by lerobot-train directly (it reads its own
+# internal defaults). Instead, 02_train_act.sh reads this file and maps
+# every key to the corresponding --flag=value CLI argument.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Top-level TrainPipelineConfig fields ──────────────────────────────────────
+seed: 1000               # --seed=1000          | Reproducibility seed for init + shuffle
+batch_size: 8            # --batch_size=8       | Mini-batch size; 8 is safe for CPU/MPS
+steps: 100000            # --steps=100000       | Total gradient-update steps
+log_freq: 200            # --log_freq=200       | Log metrics every N steps
+save_freq: 20000         # --save_freq=20000    | Checkpoint every N steps
+save_checkpoint: true    # --save_checkpoint    | Enable checkpoint saving
+num_workers: 4           # --num_workers=4      | DataLoader worker threads
+
+# ── Dataset ───────────────────────────────────────────────────────────────────
+# dataset.repo_id and dataset.root are set by 02_train_act.sh from env vars.
+# Other dataset options:
+dataset:
+  streaming: false       # --dataset.streaming=false  | Download full dataset first (safer)
+
+# ── Policy (ACT) ──────────────────────────────────────────────────────────────
+policy:
+  type: act              # --policy.type=act    | Select Action Chunking Transformer
+  # device is inferred from DEVICE env var in the script; default "cpu"
+
+  # ACT architecture hyper-parameters (these are the published defaults)
+  chunk_size: 100        # --policy.chunk_size=100    | Actions predicted per forward pass
+  n_obs_steps: 1         # --policy.n_obs_steps=1     | Steps of observation context (must be 1 for ACT)
+  n_action_steps: 100    # --policy.n_action_steps=100| Actions executed per inference call
+
+  dim_model: 512         # --policy.dim_model=512     | Transformer hidden dimension
+  n_heads: 8             # --policy.n_heads=8         | Multi-head attention heads
+  dim_feedforward: 3200  # --policy.dim_feedforward=3200  | FFN expansion dim
+  n_encoder_layers: 4    # --policy.n_encoder_layers=4
+  n_decoder_layers: 1    # --policy.n_decoder_layers=1
+
+  # VAE (Variational AutoEncoder) used during training
+  use_vae: true          # --policy.use_vae=true      | Enable KL-divergence loss
+  latent_dim: 32         # --policy.latent_dim=32     | VAE latent space size
+  n_vae_encoder_layers: 4# --policy.n_vae_encoder_layers=4
+
+  kl_weight: 10.0        # --policy.kl_weight=10.0   | Weight of KL loss term
+  dropout: 0.1           # --policy.dropout=0.1
+
+  # Vision backbone for image observations
+  vision_backbone: resnet18  # --policy.vision_backbone=resnet18
+
+  # Optimizer (used via training preset)
+  optimizer_lr: 1.0e-5   # --policy.optimizer_lr=1e-5
+  optimizer_lr_backbone: 1.0e-5  # --policy.optimizer_lr_backbone=1e-5
+  optimizer_weight_decay: 1.0e-4 # --policy.optimizer_weight_decay=1e-4
+
+  # Disable auto-pushing to HuggingFace Hub after training
+  push_to_hub: false     # --policy.push_to_hub=false
+
+# ── W&B (Weights & Biases) ───────────────────────────────────────────────────
+wandb:
+  enable: false          # --wandb.enable=false  | Disable W&B logging by default

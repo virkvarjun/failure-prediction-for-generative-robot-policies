@@ -1,0 +1,15 @@
+# Core LeRobot (pinned to the version verified to work with Python 3.14)
+# ACT extras included: installs torchvision, einops, etc.
+"lerobot[act]==0.4.4"
+
+# Deep learning backend (CPU-only wheels by default; switch to CUDA below if needed)
+# For CUDA 12.x: pip install torch --index-url https://download.pytorch.org/whl/cu121
+torch==2.10.0
+
+# Utilities
+numpy>=1.26.0
+pyyaml>=6.0
+rich>=13.0          # pretty terminal output
+
+# HuggingFace Hub (for dataset & model download, CLI login)
+huggingface_hub>=0.23.0

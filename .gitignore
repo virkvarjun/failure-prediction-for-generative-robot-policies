@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+.venv/
+
+# Data (never commit raw datasets)
+data/
+
+# Training outputs (checkpoints, logs, tensorboard)
+outputs/
+
+# Weights & Biases
+wandb/
+
+# macOS
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+
+# HuggingFace cache (can be large)
+.cache/
+
+# env files with real secrets
+.env
