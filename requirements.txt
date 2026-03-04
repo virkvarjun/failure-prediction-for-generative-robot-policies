@@ -1,4 +1,8 @@
-# Core LeRobot (pinned to the version verified to work with Python 3.14)
+# ⚠️  Python 3.12 required — lerobot 0.4.4's draccus dependency is incompatible
+#     with Python 3.13/3.14 due to a Union type hint issue in argparse.
+#     Use: /usr/local/bin/python3.12 -m venv .venv
+#
+# Core LeRobot (pinned to the version verified to work with Python 3.12)
 # ACT extras included: installs torchvision, einops, etc.
 "lerobot[act]==0.4.4"
 
